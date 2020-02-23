@@ -56,7 +56,7 @@ public class ViewMemoImageAdapter extends RecyclerView.Adapter<ViewMemoImageAdap
                     .into(holder.img);
         }else {
             Toast.makeText(context,
-                    "사진파일이 올바르지 않습니다.", Toast.LENGTH_SHORT).show();
+                    "사진파일이 이동되었거나 삭제되었습니다.", Toast.LENGTH_SHORT).show();
         }
     }
 

@@ -2,6 +2,7 @@ package com.example.mymemo;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
@@ -41,11 +42,13 @@ import android.widget.Toast;
 import org.json.JSONArray;
 
 import java.io.BufferedInputStream;
+import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.net.URL;
 import java.net.URLConnection;
 import java.text.SimpleDateFormat;
@@ -62,6 +65,7 @@ public class AddMemoActivity extends AppCompatActivity {
     private String currentImagePath;
     static int CAMERA_IMAGE = 100;
     static int GALLERY_IMAGE = 200;
+    static boolean isEdit = false;
 
     AlertDialog alert;
 
@@ -83,6 +87,17 @@ public class AddMemoActivity extends AppCompatActivity {
         add_img_recyclerView.setLayoutManager(layoutManager);
         add_img_recyclerView.setAdapter(imgAdapter);
 
+        // 기존 메모를 수정하러 온 목적
+        if(getIntent().getStringExtra("fileName") != null){
+            isEdit = true;
+            if(getIntent().getStringArrayListExtra("images")!=null){
+                img_item.addAll(getIntent().getStringArrayListExtra("images"));
+            }
+            imgAdapter.notifyDataSetChanged();
+            eTitle.setText(getIntent().getStringExtra("title"));
+            eContents.setText(getIntent().getStringExtra("contents"));
+        }
+
         // 사진 추가 버튼 클릭
         imgAddBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -98,7 +113,6 @@ public class AddMemoActivity extends AppCompatActivity {
                                 Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
                     }
                 }
-
                 photoDialogRadio();
             }
         });
@@ -109,26 +123,34 @@ public class AddMemoActivity extends AppCompatActivity {
             public void onClick(View v) {
                 String title = eTitle.getText().toString() + "\n";
                 String contents = eContents.getText().toString();
-                SimpleDateFormat nameFormat = new SimpleDateFormat("yyyyMMddHHmmss");
-                String fileName = nameFormat.format(new Date()) + ".txt";
+                String fileName = null;
+                if(isEdit){
+                    fileName = getIntent().getStringExtra("fileName");
+                }else {
+                    SimpleDateFormat nameFormat = new SimpleDateFormat("yyyyMMddHHmmss");
+                    fileName = nameFormat.format(new Date()) + ".txt";
+                }
 
                 FileOutputStream fos;
                 try {
                     fos = openFileOutput(fileName, Context.MODE_PRIVATE);
-                    for(int i=0; i<img_item.size(); i++){
-                        fos.write("image#\n".getBytes());
-                        fos.write(img_item.get(i).getBytes());
-                        fos.write("\n".getBytes());
+                    BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(fos));
+                    for (int i = 0; i < img_item.size(); i++) {
+                        bw.write("image#\n");
+                        bw.write(img_item.get(i));
+                        bw.write("\n");
                     }
-                    fos.write(title.getBytes());
-                    fos.write(contents.getBytes());
+                    bw.write(title);
+                    bw.write(contents);
+                    bw.close();
                     fos.close();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
 
                 Intent intent = new Intent(AddMemoActivity.this, MainActivity.class);
-                intent.putExtra("fileName", fileName);
+                if(!isEdit)
+                    intent.putExtra("fileName", fileName);
                 intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                 startActivity(intent);
                 finish();
@@ -162,6 +184,7 @@ public class AddMemoActivity extends AppCompatActivity {
                         try {
                             imageFile = createImageFile();
                         } catch (IOException ex) {
+
                         }
                         if (imageFile != null) {
                             Uri photoURI = FileProvider.getUriForFile(AddMemoActivity.this,
@@ -191,15 +214,15 @@ public class AddMemoActivity extends AppCompatActivity {
                                 public void onClick(DialogInterface dialog, int id) {
                                     String value = et.getText().toString();
                                     // check url validation
-                                    if(URLUtil.isValidUrl(value)) {
+                                    if (URLUtil.isValidUrl(value)) {
                                         img_item.add(value);
                                         imgAdapter.notifyDataSetChanged();
-                                    }
-                                    else {
+                                    } else {
                                         Toast.makeText(AddMemoActivity.this,
                                                 "URL이 올바르지 않습니다.", Toast.LENGTH_SHORT).show();
                                     }
                                     alert.dismiss();
+                                    add_img_recyclerView.scrollToPosition(imgAdapter.getItemCount()-1);
                                 }
                             });
                     AlertDialog alert2 = alt_bld.create();
@@ -215,12 +238,12 @@ public class AddMemoActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (resultCode == RESULT_OK) {
-            if (requestCode == CAMERA_IMAGE){
+            if (requestCode == CAMERA_IMAGE) {
                 try {
                     File file = new File(currentImagePath);
                     Log.d("사진파일 경로", currentImagePath);
                     Bitmap bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), Uri.fromFile(file));
-                    if(bitmap != null){
+                    if (bitmap != null) {
                         img_item.add(currentImagePath);
                         imgAdapter.notifyDataSetChanged();
                     }
@@ -244,7 +267,7 @@ public class AddMemoActivity extends AppCompatActivity {
 
             } else if (requestCode == GALLERY_IMAGE) {
                 try { //불러온 사진 데이터를 비트맵으로 저장
-                    Bitmap bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), data.getData());
+//                    Bitmap bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), data.getData());
                     Log.d("갤러리파일 경로", getPath(AddMemoActivity.this, data.getData()));
                     //이미지뷰에 비트맵 세팅
                     img_item.add(getPath(AddMemoActivity.this, data.getData()));
@@ -254,28 +277,42 @@ public class AddMemoActivity extends AppCompatActivity {
                 }
             }
         }
+        add_img_recyclerView.scrollToPosition(imgAdapter.getItemCount()-1);
         alert.dismiss();
     }
 
     public File createImageFile() throws IOException {
-        String imageFileName = System.currentTimeMillis()+"";
+        String imageFileName = System.currentTimeMillis() + "";
         File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
         File image = File.createTempFile(imageFileName, ".jpg", storageDir);
         currentImagePath = image.getAbsolutePath();
-        return  image;
+        return image;
     }
 
-    // Bitmap 을 String 으로 변환
-    public static String BitmapToString(Bitmap bitmap) {
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        bitmap.compress(Bitmap.CompressFormat.PNG, 70, baos);
-        byte[] bytes = baos.toByteArray();
-        String temp = Base64.encodeToString(bytes, Base64.DEFAULT);
-        return temp;
+//    // Bitmap 을 String 으로 변환
+//    public static String BitmapToString(Bitmap bitmap) {
+//        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+//        bitmap.compress(Bitmap.CompressFormat.PNG, 70, baos);
+//        byte[] bytes = baos.toByteArray();
+//        String temp = Base64.encodeToString(bytes, Base64.DEFAULT);
+//        return temp;
+//    }
+
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        if(!isEdit) {
+            // 카메라 촬영 후 메모를 저장하지 않을 때 사진 파일 삭제
+            for (String path : img_item) {
+                if (path.contains("com.example.mymemo")) {
+                    File file = new File(path);
+                    if (file.exists())
+                        file.delete();
+                }
+            }
+        }
     }
-
-
-
 
     /**
      * Get a file path from a Uri. This will get the the path for Storage Access
@@ -283,7 +320,7 @@ public class AddMemoActivity extends AppCompatActivity {
      * other file-based ContentProviders.
      *
      * @param context The context.
-     * @param uri The Uri to query.
+     * @param uri     The Uri to query.
      * @author paulburke
      */
     public static String getPath(final Context context, final Uri uri) {
@@ -327,7 +364,7 @@ public class AddMemoActivity extends AppCompatActivity {
                 }
 
                 final String selection = "_id=?";
-                final String[] selectionArgs = new String[] {
+                final String[] selectionArgs = new String[]{
                         split[1]
                 };
 
@@ -350,9 +387,9 @@ public class AddMemoActivity extends AppCompatActivity {
      * Get the value of the data column for this Uri. This is useful for
      * MediaStore Uris, and other file-based ContentProviders.
      *
-     * @param context The context.
-     * @param uri The Uri to query.
-     * @param selection (Optional) Filter used in the query.
+     * @param context       The context.
+     * @param uri           The Uri to query.
+     * @param selection     (Optional) Filter used in the query.
      * @param selectionArgs (Optional) Selection arguments used in the query.
      * @return The value of the _data column, which is typically a file path.
      */

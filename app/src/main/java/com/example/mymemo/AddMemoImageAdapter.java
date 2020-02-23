@@ -1,6 +1,7 @@
 package com.example.mymemo;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.provider.MediaStore;
@@ -13,6 +14,7 @@ import android.widget.ImageView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
@@ -38,8 +40,8 @@ public class AddMemoImageAdapter extends RecyclerView.Adapter<AddMemoImageAdapte
     }
 
     @Override
-    public void onBindViewHolder(@NonNull AddMemoImageAdapter.ViewHolder holder, int position) {
-        String path = items.get(position);
+    public void onBindViewHolder(@NonNull AddMemoImageAdapter.ViewHolder holder, final int position) {
+        final String path = items.get(position);
 
         File file = new File(path);
         Bitmap bitmap = null;
@@ -59,6 +61,37 @@ public class AddMemoImageAdapter extends RecyclerView.Adapter<AddMemoImageAdapte
             Toast.makeText(context,
                     "사진파일이 올바르지 않습니다.", Toast.LENGTH_SHORT).show();
         }
+
+        holder.btn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // 다이얼로그 띄워서 삭제 의사 묻기
+                AlertDialog.Builder builder = new AlertDialog.Builder(v.getContext());
+                builder.setTitle("사진을 삭제합니까?");
+                builder.setPositiveButton("네", new DialogInterface.OnClickListener(){
+                    @Override
+                    public void onClick(DialogInterface dialog, int id) {
+                        // 카메라 촬영인 경우 내부에 저장된 사진 삭제
+                        if(path.contains("com.example.mymemo")) {
+                            File file = new File(path);
+                            if (file.exists())
+                                file.delete();
+                        }
+                        // 아이템 리스트에서 제거
+                        items.remove(position);
+                        notifyDataSetChanged();
+                    }
+                });
+                builder.setNegativeButton("아니오", new DialogInterface.OnClickListener(){
+                    @Override
+                    public void onClick(DialogInterface dialog, int id) {
+
+                    }
+                });
+                AlertDialog alertDialog = builder.create();
+                alertDialog.show();
+            }
+        });
     }
 
     @Override

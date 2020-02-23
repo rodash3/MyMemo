@@ -68,13 +68,13 @@ public class MainActivity extends AppCompatActivity {
         memo_item.clear();
         String title;
         String contents;
-        ArrayList<String> imgs = new ArrayList<>();
         boolean hasImage;
         FileInputStream fis;
 
         for (int i=0; i<fileNames.size(); i++){
             StringBuilder contentsBuilder = new StringBuilder();
             hasImage = false;
+            ArrayList<String> imgs = new ArrayList<>();
             try {
                 String name = fileNames.get(i);
                 fis = openFileInput(name);

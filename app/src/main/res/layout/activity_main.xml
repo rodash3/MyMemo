@@ -21,6 +21,6 @@
         android:focusable="true"
         android:clickable="true"
         android:src="@mipmap/add_black_36"
-        app:backgroundTint="#009688" />
+        android:backgroundTint="@color/colorPrimaryDark"/>
 
 </FrameLayout>
