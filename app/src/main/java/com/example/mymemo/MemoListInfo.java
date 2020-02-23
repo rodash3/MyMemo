@@ -1,10 +1,12 @@
 package com.example.mymemo;
 
+import java.util.ArrayList;
+
 public class MemoListInfo {
     private String title;
     private String contents;
     private String previewImg;
-    private String[] imgs;
+    private ArrayList<String> imgs;
     private String fileName;
 
     public MemoListInfo(String title, String contents, String fileName) {
@@ -13,7 +15,7 @@ public class MemoListInfo {
         this.fileName = fileName;
     }
 
-    public MemoListInfo(String title, String contents, String previewImg, String[] imgs, String fileName) {
+    public MemoListInfo(String title, String contents, String previewImg, ArrayList<String> imgs, String fileName) {
         this.title = title;
         this.contents = contents;
         this.previewImg = previewImg;
@@ -45,11 +47,11 @@ public class MemoListInfo {
         this.previewImg = previewImg;
     }
 
-    public String[] getImgs() {
+    public ArrayList<String> getImgs() {
         return imgs;
     }
 
-    public void setImgs(String[] imgs) {
+    public void setImgs(ArrayList<String> imgs) {
         this.imgs = imgs;
     }
 

@@ -1,37 +1,53 @@
 package com.example.mymemo;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
+import androidx.core.content.FileProvider;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.Manifest;
+import android.content.ContentUris;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.preference.PreferenceManager;
+import android.provider.DocumentsContract;
+import android.provider.MediaStore;
+import android.util.Base64;
 import android.util.Log;
 import android.view.View;
+import android.webkit.URLUtil;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.Toast;
 
 import org.json.JSONArray;
 
+import java.io.BufferedInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.net.URL;
+import java.net.URLConnection;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -40,15 +56,21 @@ import java.util.List;
 public class AddMemoActivity extends AppCompatActivity {
 
     public RecyclerView add_img_recyclerView;
-    private List<Bitmap> img_item = new ArrayList<>();
+    private List<String> img_item = new ArrayList<>();
     private final AddMemoImageAdapter imgAdapter = new AddMemoImageAdapter(AddMemoActivity.this, img_item);
     private String CTAG = "Camera Permission-";
+    private String currentImagePath;
+    static int CAMERA_IMAGE = 100;
+    static int GALLERY_IMAGE = 200;
+
+    AlertDialog alert;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_memo);
 
-        final EditText eTitle= findViewById(R.id.add_memo_title);
+        final EditText eTitle = findViewById(R.id.add_memo_title);
         final EditText eContents = findViewById(R.id.add_memo_contents);
         Button saveBtn = findViewById(R.id.add_memo_saveBtn);
         ImageButton imgAddBtn = findViewById(R.id.add_memo_image_addBtn);
@@ -81,17 +103,23 @@ public class AddMemoActivity extends AppCompatActivity {
             }
         });
 
+        // 저장 버튼 클릭하면 파일 형태로 메모 저장
         saveBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 String title = eTitle.getText().toString() + "\n";
                 String contents = eContents.getText().toString();
-                SimpleDateFormat nameFormat = new SimpleDateFormat( "yyyyMMddHHmmss");
+                SimpleDateFormat nameFormat = new SimpleDateFormat("yyyyMMddHHmmss");
                 String fileName = nameFormat.format(new Date()) + ".txt";
 
                 FileOutputStream fos;
                 try {
                     fos = openFileOutput(fileName, Context.MODE_PRIVATE);
+                    for(int i=0; i<img_item.size(); i++){
+                        fos.write("image#\n".getBytes());
+                        fos.write(img_item.get(i).getBytes());
+                        fos.write("\n".getBytes());
+                    }
                     fos.write(title.getBytes());
                     fos.write(contents.getBytes());
                     fos.close();
@@ -128,16 +156,251 @@ public class AddMemoActivity extends AppCompatActivity {
         alt_bld.setSingleChoiceItems(PhotoModels, -1, new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int item) {
                 if (item == 0) { // 카메라로 사진 찍기
+                    Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                    if (cameraIntent.resolveActivity(getPackageManager()) != null) {
+                        File imageFile = null;
+                        try {
+                            imageFile = createImageFile();
+                        } catch (IOException ex) {
+                        }
+                        if (imageFile != null) {
+                            Uri photoURI = FileProvider.getUriForFile(AddMemoActivity.this,
+                                    "com.example.mymemo.provider", imageFile);
+                            cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
+                            startActivityForResult(cameraIntent, CAMERA_IMAGE);
+                        }
+                    }
+//                    String url = "tmp_" + System.currentTimeMillis()+".jpg";
+//                    Log.d("야", imageFile.getAbsolutePath());
+//                    imageUri = FileProvider.getUriForFile(AddMemoActivity.this, "com.example.mymemo.provider",
+//                            new File(Environment.getExternalStorageDirectory(), url));
+//                    cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri);
+//                    startActivityForResult(cameraIntent, CAMERA_IMAGE);
 
                 } else if (item == 1) { // 갤러리에서
-
-                } else if(item == 2) { // 외부 링크
-
+                    Intent intent = new Intent();
+                    intent.setType("image/*");
+                    intent.setAction(Intent.ACTION_GET_CONTENT);
+                    startActivityForResult(intent, GALLERY_IMAGE);
+                } else if (item == 2) { // 외부 링크
+                    final EditText et = new EditText(AddMemoActivity.this);
+                    AlertDialog.Builder alt_bld = new AlertDialog.Builder(AddMemoActivity.this);
+                    alt_bld.setTitle("URL 입력")
+                            .setView(et)
+                            .setPositiveButton("확인", new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int id) {
+                                    String value = et.getText().toString();
+                                    // check url validation
+                                    if(URLUtil.isValidUrl(value)) {
+                                        img_item.add(value);
+                                        imgAdapter.notifyDataSetChanged();
+                                    }
+                                    else {
+                                        Toast.makeText(AddMemoActivity.this,
+                                                "URL이 올바르지 않습니다.", Toast.LENGTH_SHORT).show();
+                                    }
+                                    alert.dismiss();
+                                }
+                            });
+                    AlertDialog alert2 = alt_bld.create();
+                    alert2.show();
                 }
             }
         });
-        AlertDialog alert = alt_bld.create();
+        alert = alt_bld.create();
         alert.show();
     }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode == RESULT_OK) {
+            if (requestCode == CAMERA_IMAGE){
+                try {
+                    File file = new File(currentImagePath);
+                    Log.d("사진파일 경로", currentImagePath);
+                    Bitmap bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), Uri.fromFile(file));
+                    if(bitmap != null){
+                        img_item.add(currentImagePath);
+                        imgAdapter.notifyDataSetChanged();
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+//                try {
+//
+//                        Bitmap bitmap = data.getExtras().getParcelable("data");
+//                        img_item.add(bitmap);
+//                        imgAdapter.notifyDataSetChanged();
+
+//                    bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), data.getData());
+//                    bitmap = (Bitmap) data.getExtras().get("data");
+//                    Bitmap bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), imageUri);
+//                    img_item.add(bitmap);
+//                    imgAdapter.notifyDataSetChanged();
+//                } catch (IOException e) {
+//                    e.printStackTrace();
+//                }
+
+            } else if (requestCode == GALLERY_IMAGE) {
+                try { //불러온 사진 데이터를 비트맵으로 저장
+                    Bitmap bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), data.getData());
+                    Log.d("갤러리파일 경로", getPath(AddMemoActivity.this, data.getData()));
+                    //이미지뷰에 비트맵 세팅
+                    img_item.add(getPath(AddMemoActivity.this, data.getData()));
+                    imgAdapter.notifyDataSetChanged();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        alert.dismiss();
+    }
+
+    public File createImageFile() throws IOException {
+        String imageFileName = System.currentTimeMillis()+"";
+        File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+        File image = File.createTempFile(imageFileName, ".jpg", storageDir);
+        currentImagePath = image.getAbsolutePath();
+        return  image;
+    }
+
+    // Bitmap 을 String 으로 변환
+    public static String BitmapToString(Bitmap bitmap) {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.PNG, 70, baos);
+        byte[] bytes = baos.toByteArray();
+        String temp = Base64.encodeToString(bytes, Base64.DEFAULT);
+        return temp;
+    }
+
+
+
+
+    /**
+     * Get a file path from a Uri. This will get the the path for Storage Access
+     * Framework Documents, as well as the _data field for the MediaStore and
+     * other file-based ContentProviders.
+     *
+     * @param context The context.
+     * @param uri The Uri to query.
+     * @author paulburke
+     */
+    public static String getPath(final Context context, final Uri uri) {
+
+        final boolean isKitKat = Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT;
+
+        // DocumentProvider
+        if (isKitKat && DocumentsContract.isDocumentUri(context, uri)) {
+            // ExternalStorageProvider
+            if (isExternalStorageDocument(uri)) {
+                final String docId = DocumentsContract.getDocumentId(uri);
+                final String[] split = docId.split(":");
+                final String type = split[0];
+
+                if ("primary".equalsIgnoreCase(type)) {
+                    return Environment.getExternalStorageDirectory() + "/" + split[1];
+                }
+            }
+            // DownloadsProvider
+            else if (isDownloadsDocument(uri)) {
+
+                final String id = DocumentsContract.getDocumentId(uri);
+                final Uri contentUri = ContentUris.withAppendedId(
+                        Uri.parse("content://downloads/public_downloads"), Long.valueOf(id));
+
+                return getDataColumn(context, contentUri, null, null);
+            }
+            // MediaProvider
+            else if (isMediaDocument(uri)) {
+                final String docId = DocumentsContract.getDocumentId(uri);
+                final String[] split = docId.split(":");
+                final String type = split[0];
+
+                Uri contentUri = null;
+                if ("image".equals(type)) {
+                    contentUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
+                } else if ("video".equals(type)) {
+                    contentUri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI;
+                } else if ("audio".equals(type)) {
+                    contentUri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
+                }
+
+                final String selection = "_id=?";
+                final String[] selectionArgs = new String[] {
+                        split[1]
+                };
+
+                return getDataColumn(context, contentUri, selection, selectionArgs);
+            }
+        }
+        // MediaStore (and general)
+        else if ("content".equalsIgnoreCase(uri.getScheme())) {
+            return getDataColumn(context, uri, null, null);
+        }
+        // File
+        else if ("file".equalsIgnoreCase(uri.getScheme())) {
+            return uri.getPath();
+        }
+
+        return null;
+    }
+
+    /**
+     * Get the value of the data column for this Uri. This is useful for
+     * MediaStore Uris, and other file-based ContentProviders.
+     *
+     * @param context The context.
+     * @param uri The Uri to query.
+     * @param selection (Optional) Filter used in the query.
+     * @param selectionArgs (Optional) Selection arguments used in the query.
+     * @return The value of the _data column, which is typically a file path.
+     */
+    public static String getDataColumn(Context context, Uri uri, String selection,
+                                       String[] selectionArgs) {
+
+        Cursor cursor = null;
+        final String column = "_data";
+        final String[] projection = {
+                column
+        };
+
+        try {
+            cursor = context.getContentResolver().query(uri, projection, selection, selectionArgs,
+                    null);
+            if (cursor != null && cursor.moveToFirst()) {
+                final int column_index = cursor.getColumnIndexOrThrow(column);
+                return cursor.getString(column_index);
+            }
+        } finally {
+            if (cursor != null)
+                cursor.close();
+        }
+        return null;
+    }
+
+
+    /**
+     * @param uri The Uri to check.
+     * @return Whether the Uri authority is ExternalStorageProvider.
+     */
+    public static boolean isExternalStorageDocument(Uri uri) {
+        return "com.android.externalstorage.documents".equals(uri.getAuthority());
+    }
+
+    /**
+     * @param uri The Uri to check.
+     * @return Whether the Uri authority is DownloadsProvider.
+     */
+    public static boolean isDownloadsDocument(Uri uri) {
+        return "com.android.providers.downloads.documents".equals(uri.getAuthority());
+    }
+
+    /**
+     * @param uri The Uri to check.
+     * @return Whether the Uri authority is MediaProvider.
+     */
+    public static boolean isMediaDocument(Uri uri) {
+        return "com.android.providers.media.documents".equals(uri.getAuthority());
+    }
 }

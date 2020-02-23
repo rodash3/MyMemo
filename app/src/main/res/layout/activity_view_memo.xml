@@ -6,10 +6,10 @@
     android:orientation="vertical"
     tools:context=".ViewMemoActivity">
 
-    <ImageView
-        android:id="@+id/view_memo_Img"
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/view_memo_image_recyclerView"
         android:layout_width="match_parent"
-        android:layout_height="200dp"/>
+        android:layout_height="wrap_content"/>
 
     <TextView
         android:id="@+id/view_memo_title"
@@ -21,11 +21,12 @@
         android:id="@+id/view_memo_contents"
         android:layout_weight="1"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"/>
+        android:layout_height="0dp"/>
 
     <TextView
         android:id="@+id/view_memo_time_stamp"
         android:layout_gravity="end|bottom"
+        android:padding="10dp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"/>
 </LinearLayout>

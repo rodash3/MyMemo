@@ -45,9 +45,12 @@ public class MainMemoListAdapter extends RecyclerView.Adapter<MainMemoListAdapte
         holder.contents.setText(item.getContents());
         // 사진이 있을 경우 URL 으로 프리뷰 이미지 나타냄
         if(!TextUtils.isEmpty(item.getPreviewImg())){
+            holder.preview_img.setVisibility(View.VISIBLE);
             Glide.with(holder.itemView.getContext())
                     .load(item.getPreviewImg())
                     .into(holder.preview_img);
+        }else {
+            holder.preview_img.setVisibility(View.GONE);
         }
 
         holder.itemView.setOnClickListener(new View.OnClickListener() {

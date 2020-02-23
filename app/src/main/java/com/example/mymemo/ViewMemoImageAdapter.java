@@ -8,7 +8,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.URLUtil;
-import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.Toast;
 
@@ -21,24 +20,24 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
-public class AddMemoImageAdapter extends RecyclerView.Adapter<AddMemoImageAdapter.ViewHolder> {
+public class ViewMemoImageAdapter extends RecyclerView.Adapter<ViewMemoImageAdapter.ViewHolder> {
     private Context context;
     private List<String> items;
 
-    public AddMemoImageAdapter(Context context, List<String> items) {
+    public ViewMemoImageAdapter(Context context, List<String> items) {
         this.context = context;
         this.items = items;
     }
 
     @NonNull
     @Override
-    public AddMemoImageAdapter.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.add_memo_image_item, null);
+    public ViewMemoImageAdapter.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.view_memo_image_item, null);
         return new ViewHolder(v);
     }
 
     @Override
-    public void onBindViewHolder(@NonNull AddMemoImageAdapter.ViewHolder holder, int position) {
+    public void onBindViewHolder(@NonNull ViewMemoImageAdapter.ViewHolder holder, int position) {
         String path = items.get(position);
 
         File file = new File(path);
@@ -68,25 +67,10 @@ public class AddMemoImageAdapter extends RecyclerView.Adapter<AddMemoImageAdapte
 
     class ViewHolder extends RecyclerView.ViewHolder {
         ImageView img;
-        Button btn;
 
         ViewHolder(@NonNull View itemView) {
             super(itemView);
-            img = itemView.findViewById(R.id.add_memo_item_imageView);
-            btn = itemView.findViewById(R.id.add_memo_item_delBtn);
+            img = itemView.findViewById(R.id.view_memo_item_imageView);
         }
     }
-//
-//
-//    /* * String형을 BitMap으로 변환시켜주는 함수 * */
-//    public static Bitmap StringToBitmap(String encodedString) {
-//        try {
-//            byte[] encodeByte = Base64.decode(encodedString, Base64.DEFAULT);
-//            Bitmap bitmap = BitmapFactory.decodeByteArray(encodeByte, 0, encodeByte.length);
-//            return bitmap;
-//        } catch (Exception e) {
-//            e.getMessage();
-//            return null;
-//        }
-//    }
 }

@@ -68,26 +68,36 @@ public class MainActivity extends AppCompatActivity {
         memo_item.clear();
         String title;
         String contents;
+        ArrayList<String> imgs = new ArrayList<>();
+        boolean hasImage;
         FileInputStream fis;
 
         for (int i=0; i<fileNames.size(); i++){
-            StringBuffer titleBuffer = new StringBuffer();
-            StringBuffer contentsBuffer = new StringBuffer();
+            StringBuilder contentsBuilder = new StringBuilder();
+            hasImage = false;
             try {
                 String name = fileNames.get(i);
                 fis = openFileInput(name);
                 BufferedReader br = new BufferedReader(new InputStreamReader(fis));
 
-                title = br.readLine();
-                titleBuffer.append(title).append("\n");
+                while (true){
+                    title = br.readLine();
+                    if(title.equals("image#")){
+                        hasImage = true;
+                        imgs.add(br.readLine());
+                    }else {
+                        break;
+                    }
+                }
                 contents = br.readLine();
                 while (contents != null){
-                    contentsBuffer.append(contents).append("\n");
+                    contentsBuilder.append(contents).append("\n");
                     contents = br.readLine();
                 }
                 br.close();
                 fis.close();
-                memo_item.add(new MemoListInfo(titleBuffer.toString(), contentsBuffer.toString(), name));
+                if(hasImage) memo_item.add(new MemoListInfo(title, contentsBuilder.toString(), imgs.get(0), imgs, name));
+                else memo_item.add(new MemoListInfo(title, contentsBuilder.toString(), name));
             } catch (IOException e) {
                 e.printStackTrace();
             }
