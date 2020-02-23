@@ -13,38 +13,45 @@
         android:id="@+id/view_memo_toolbar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="#EEEEEE"
+        android:background="@color/colorAccent"
         android:minHeight="?attr/actionBarSize">
         <TextView
             android:id="@+id/view_memo_toolbar_title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="상세보기"
-            android:textColor="#333333"
+            android:textColor="#222222"
             android:textSize="16sp"/>
     </androidx.appcompat.widget.Toolbar>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/view_memo_image_recyclerView"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"/>
+        android:layout_height="wrap_content"
+        android:paddingBottom="10dp"/>
 
     <TextView
         android:id="@+id/view_memo_title"
+        android:padding="15dp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/colorPrimary"/>
+        android:textSize="17sp"
+        android:textStyle="bold"
+        android:textColor="@color/colorPrimaryDark"/>
 
     <TextView
         android:id="@+id/view_memo_contents"
+        android:paddingStart="20dp"
+        android:paddingEnd="20dp"
         android:layout_weight="1"
+        android:textColor="@color/colorPrimaryDark"
         android:layout_width="match_parent"
         android:layout_height="0dp"/>
 
     <TextView
         android:id="@+id/view_memo_time_stamp"
         android:layout_gravity="end|bottom"
-        android:padding="10dp"
+        android:padding="15dp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"/>
 </LinearLayout>

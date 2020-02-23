@@ -55,19 +55,19 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 public class AddMemoActivity extends AppCompatActivity {
 
     public RecyclerView add_img_recyclerView;
     private List<String> img_item = new ArrayList<>();
-    private final AddMemoImageAdapter imgAdapter = new AddMemoImageAdapter(AddMemoActivity.this, img_item);
+    private AddMemoImageAdapter imgAdapter = new AddMemoImageAdapter(AddMemoActivity.this, img_item);
     private String CTAG = "Camera Permission-";
     private String currentImagePath;
     static int CAMERA_IMAGE = 100;
     static int GALLERY_IMAGE = 200;
-    static boolean isEdit = false;
-
-    AlertDialog alert;
+    static boolean isEdit;
+    private AlertDialog alert;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -87,6 +87,7 @@ public class AddMemoActivity extends AppCompatActivity {
         add_img_recyclerView.setLayoutManager(layoutManager);
         add_img_recyclerView.setAdapter(imgAdapter);
 
+        isEdit = false;
         // 기존 메모를 수정하러 온 목적
         if(getIntent().getStringExtra("fileName") != null){
             isEdit = true;
@@ -127,7 +128,7 @@ public class AddMemoActivity extends AppCompatActivity {
                 if(isEdit){
                     fileName = getIntent().getStringExtra("fileName");
                 }else {
-                    SimpleDateFormat nameFormat = new SimpleDateFormat("yyyyMMddHHmmss");
+                    SimpleDateFormat nameFormat = new SimpleDateFormat("yyyyMMddHHmmss", Locale.KOREAN);
                     fileName = nameFormat.format(new Date()) + ".txt";
                 }
 
@@ -147,7 +148,6 @@ public class AddMemoActivity extends AppCompatActivity {
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-
                 Intent intent = new Intent(AddMemoActivity.this, MainActivity.class);
                 if(!isEdit)
                     intent.putExtra("fileName", fileName);
@@ -184,7 +184,7 @@ public class AddMemoActivity extends AppCompatActivity {
                         try {
                             imageFile = createImageFile();
                         } catch (IOException ex) {
-
+                            ex.printStackTrace();
                         }
                         if (imageFile != null) {
                             Uri photoURI = FileProvider.getUriForFile(AddMemoActivity.this,
@@ -193,19 +193,12 @@ public class AddMemoActivity extends AppCompatActivity {
                             startActivityForResult(cameraIntent, CAMERA_IMAGE);
                         }
                     }
-//                    String url = "tmp_" + System.currentTimeMillis()+".jpg";
-//                    Log.d("야", imageFile.getAbsolutePath());
-//                    imageUri = FileProvider.getUriForFile(AddMemoActivity.this, "com.example.mymemo.provider",
-//                            new File(Environment.getExternalStorageDirectory(), url));
-//                    cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri);
-//                    startActivityForResult(cameraIntent, CAMERA_IMAGE);
-
                 } else if (item == 1) { // 갤러리에서
                     Intent intent = new Intent();
                     intent.setType("image/*");
                     intent.setAction(Intent.ACTION_GET_CONTENT);
                     startActivityForResult(intent, GALLERY_IMAGE);
-                } else if (item == 2) { // 외부 링크
+                } else if (item == 2) { // 외부 URL
                     final EditText et = new EditText(AddMemoActivity.this);
                     AlertDialog.Builder alt_bld = new AlertDialog.Builder(AddMemoActivity.this);
                     alt_bld.setTitle("URL 입력")
@@ -238,7 +231,7 @@ public class AddMemoActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (resultCode == RESULT_OK) {
-            if (requestCode == CAMERA_IMAGE) {
+            if (requestCode == CAMERA_IMAGE) {  // 카메라에서 찍은 이미지
                 try {
                     File file = new File(currentImagePath);
                     Log.d("사진파일 경로", currentImagePath);
@@ -250,26 +243,9 @@ public class AddMemoActivity extends AppCompatActivity {
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-//                try {
-//
-//                        Bitmap bitmap = data.getExtras().getParcelable("data");
-//                        img_item.add(bitmap);
-//                        imgAdapter.notifyDataSetChanged();
-
-//                    bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), data.getData());
-//                    bitmap = (Bitmap) data.getExtras().get("data");
-//                    Bitmap bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), imageUri);
-//                    img_item.add(bitmap);
-//                    imgAdapter.notifyDataSetChanged();
-//                } catch (IOException e) {
-//                    e.printStackTrace();
-//                }
-
-            } else if (requestCode == GALLERY_IMAGE) {
-                try { //불러온 사진 데이터를 비트맵으로 저장
-//                    Bitmap bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), data.getData());
+            } else if (requestCode == GALLERY_IMAGE && data != null) { // 갤러리에서 가져온 이미지
+                try {
                     Log.d("갤러리파일 경로", getPath(AddMemoActivity.this, data.getData()));
-                    //이미지뷰에 비트맵 세팅
                     img_item.add(getPath(AddMemoActivity.this, data.getData()));
                     imgAdapter.notifyDataSetChanged();
                 } catch (Exception e) {
@@ -289,16 +265,6 @@ public class AddMemoActivity extends AppCompatActivity {
         return image;
     }
 
-//    // Bitmap 을 String 으로 변환
-//    public static String BitmapToString(Bitmap bitmap) {
-//        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-//        bitmap.compress(Bitmap.CompressFormat.PNG, 70, baos);
-//        byte[] bytes = baos.toByteArray();
-//        String temp = Base64.encodeToString(bytes, Base64.DEFAULT);
-//        return temp;
-//    }
-
-
     @Override
     public void onBackPressed() {
         super.onBackPressed();
@@ -314,6 +280,7 @@ public class AddMemoActivity extends AppCompatActivity {
         }
     }
 
+    // 갤러리에서 이미지를 가져왔을때 Uri 를 통해 실제 이미지 파일의 경로 알아내기
     /**
      * Get a file path from a Uri. This will get the the path for Storage Access
      * Framework Documents, as well as the _data field for the MediaStore and
@@ -415,7 +382,6 @@ public class AddMemoActivity extends AppCompatActivity {
         }
         return null;
     }
-
 
     /**
      * @param uri The Uri to check.

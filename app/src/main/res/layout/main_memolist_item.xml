@@ -37,6 +37,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="10dp"
         android:maxLines="1"
+        android:ellipsize="end"
         android:textColor="#222222"
         android:textStyle="bold"/>
 
@@ -46,6 +47,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="10dp"
         android:maxLines="2"
+        android:ellipsize="end"
         android:textColor="#222222"/>
 
 </LinearLayout>

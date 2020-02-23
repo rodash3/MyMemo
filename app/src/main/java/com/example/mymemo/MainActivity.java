@@ -48,6 +48,7 @@ public class MainActivity extends AppCompatActivity {
 
         FloatingActionButton addBtn = findViewById(R.id.main_add_floatingButton);
 
+        // 메모 추가 버튼을 누르면 메모 작성 액티비티로 이동
         addBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -71,6 +72,7 @@ public class MainActivity extends AppCompatActivity {
         boolean hasImage;
         FileInputStream fis;
 
+        // 파일 읽어들이기
         for (int i=0; i<fileNames.size(); i++){
             StringBuilder contentsBuilder = new StringBuilder();
             hasImage = false;
@@ -82,7 +84,7 @@ public class MainActivity extends AppCompatActivity {
 
                 while (true){
                     title = br.readLine();
-                    if(title.equals("image#")){
+                    if(title.equals("image#")){ // 이미지 path or url
                         hasImage = true;
                         imgs.add(br.readLine());
                     }else {

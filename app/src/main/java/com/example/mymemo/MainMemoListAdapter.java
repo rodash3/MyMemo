@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -22,8 +23,8 @@ import java.util.List;
 
 public class MainMemoListAdapter extends RecyclerView.Adapter<MainMemoListAdapter.ViewHolder> {
 
-    Context context;
-    List<MemoListInfo> items;
+    private Context context;
+    private List<MemoListInfo> items;
 
     public MainMemoListAdapter(Context context, List<MemoListInfo> items) {
         this.context = context;

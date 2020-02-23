@@ -48,9 +48,9 @@ public class ViewMemoImageAdapter extends RecyclerView.Adapter<ViewMemoImageAdap
             e.printStackTrace();
         }
 
-        if(bitmap != null) {
+        if(bitmap != null) { // 내부 저장소의 사진일 경우 비트맵으로 세팅
             holder.img.setImageBitmap(bitmap);
-        }else if(URLUtil.isValidUrl(path)){
+        }else if(URLUtil.isValidUrl(path)){ // url 인 경우 Glide 이용
             Glide.with(context)
                     .load(path)
                     .into(holder.img);

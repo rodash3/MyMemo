@@ -50,6 +50,7 @@ public class ViewMemoActivity extends AppCompatActivity {
         view_img_recyclerView.setLayoutManager(layoutManager);
         view_img_recyclerView.setAdapter(vAdapter);
 
+        // 텍스트뷰, 이미지 세팅
         title = getIntent().getStringExtra("title");
         contents = getIntent().getStringExtra("contents");
         time = getIntent().getStringExtra("time");
