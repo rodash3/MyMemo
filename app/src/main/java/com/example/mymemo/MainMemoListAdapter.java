@@ -4,7 +4,6 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -44,12 +43,14 @@ public class MainMemoListAdapter extends RecyclerView.Adapter<MainMemoListAdapte
 
         holder.title.setText(item.getTitle());
         holder.contents.setText(item.getContents());
-        // 사진이 있을 경우 URL 으로 프리뷰 이미지 나타냄
+        // 메모에 사진이 있을 경우 프리뷰 이미지 나타냄
         if(!TextUtils.isEmpty(item.getPreviewImg())){
             holder.preview_img.setVisibility(View.VISIBLE);
             Glide.with(holder.itemView.getContext())
                     .load(item.getPreviewImg())
                     .into(holder.preview_img);
+            // @see https://github.com/bumptech/glide
+            // Glide 라이브러리 사용
         }else {
             holder.preview_img.setVisibility(View.GONE);
         }

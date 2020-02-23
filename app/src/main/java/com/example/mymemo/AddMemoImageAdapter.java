@@ -43,24 +43,11 @@ public class AddMemoImageAdapter extends RecyclerView.Adapter<AddMemoImageAdapte
     public void onBindViewHolder(@NonNull AddMemoImageAdapter.ViewHolder holder, final int position) {
         final String path = items.get(position);
 
-        File file = new File(path);
-        Bitmap bitmap = null;
-        try {
-            bitmap = MediaStore.Images.Media.getBitmap(context.getContentResolver(), Uri.fromFile(file));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        if(bitmap != null) {
-            holder.img.setImageBitmap(bitmap);
-        }else if(URLUtil.isValidUrl(path)){
-            Glide.with(context)
-                    .load(path)
-                    .into(holder.img);
-        }else {
-            Toast.makeText(context,
-                    "사진파일이 올바르지 않습니다.", Toast.LENGTH_SHORT).show();
-        }
+        Glide.with(context)
+                .load(path)
+                .into(holder.img);
+        // @see https://github.com/bumptech/glide
+        // Glide 라이브러리 사용
 
         holder.btn.setOnClickListener(new View.OnClickListener() {
             @Override
