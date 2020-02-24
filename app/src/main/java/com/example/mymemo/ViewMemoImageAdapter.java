@@ -40,11 +40,24 @@ public class ViewMemoImageAdapter extends RecyclerView.Adapter<ViewMemoImageAdap
     public void onBindViewHolder(@NonNull ViewMemoImageAdapter.ViewHolder holder, int position) {
         String path = items.get(position);
 
-        Glide.with(context)
-                .load(path)
-                .into(holder.img);
-        // @see https://github.com/bumptech/glide
-        // Glide 라이브러리 사용
+        File file = new File(path);
+        Bitmap bitmap = null;
+        try {
+            bitmap = MediaStore.Images.Media.getBitmap(context.getContentResolver(), Uri.fromFile(file));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        if(bitmap != null || URLUtil.isValidUrl(path)){
+            Glide.with(context)
+                    .load(path)
+                    .into(holder.img);
+            // @see https://github.com/bumptech/glide
+            // Glide 라이브러리 사용
+        }else {
+            Toast.makeText(context,
+                    " 사진파일이 이동되었거나 삭제되었습니다.", Toast.LENGTH_SHORT).show();
+        }
     }
 
     @Override

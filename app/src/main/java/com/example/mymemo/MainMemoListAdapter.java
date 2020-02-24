@@ -18,6 +18,8 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 
 import java.io.File;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.List;
 
 public class MainMemoListAdapter extends RecyclerView.Adapter<MainMemoListAdapter.ViewHolder> {
@@ -43,6 +45,9 @@ public class MainMemoListAdapter extends RecyclerView.Adapter<MainMemoListAdapte
 
         holder.title.setText(item.getTitle());
         holder.contents.setText(item.getContents());
+        String date = item.getFileName();
+        String dateFormat = String.format("%s.%s.%s", date.substring(2, 4), date.substring(4, 6), date.substring(6, 8));
+        holder.date.setText(dateFormat);
         // 메모에 사진이 있을 경우 프리뷰 이미지 나타냄
         if(!TextUtils.isEmpty(item.getPreviewImg())){
             holder.preview_img.setVisibility(View.VISIBLE);
@@ -112,6 +117,7 @@ public class MainMemoListAdapter extends RecyclerView.Adapter<MainMemoListAdapte
         TextView contents;
         ImageView preview_img;
         ImageButton deleteBtn;
+        TextView date;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -119,6 +125,7 @@ public class MainMemoListAdapter extends RecyclerView.Adapter<MainMemoListAdapte
             contents = itemView.findViewById(R.id.main_memo_list_contents);
             preview_img = itemView.findViewById(R.id.main_memo_list_preview_img);
             deleteBtn = itemView.findViewById(R.id.main_memo_list_delBtn);
+            date = itemView.findViewById(R.id.main_memo_date);
         }
     }
 }

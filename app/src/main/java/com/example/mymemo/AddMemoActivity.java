@@ -107,6 +107,7 @@ public class AddMemoActivity extends AppCompatActivity {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                     if (checkSelfPermission(Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED &&
                             checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
+                        photoDialogRadio();
                         Log.d(CTAG, "권한 설정 완료");
                     } else {
                         Log.d(CTAG, "권한 설정 요청");
@@ -114,7 +115,6 @@ public class AddMemoActivity extends AppCompatActivity {
                                 Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
                     }
                 }
-                photoDialogRadio();
             }
         });
 
