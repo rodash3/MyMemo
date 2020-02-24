@@ -20,7 +20,8 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:layout_marginTop="10dp"
-        android:src="@mipmap/add_photo_black_36"/>
+        android:src="@mipmap/add_photo_black_36"
+        android:contentDescription="@string/add_memo_imageButton" />
 
     <EditText
         android:id="@+id/add_memo_title"
@@ -29,7 +30,8 @@
         android:maxLines="1"
         android:inputType="text"
         android:layout_margin="10dp"
-        android:hint="Title"/>
+        android:hint="@string/hint_title"
+        android:importantForAutofill="no" />
 
     <EditText
         android:id="@+id/add_memo_contents"
@@ -38,14 +40,15 @@
         android:inputType="textMultiLine"
         android:scrollbars="vertical"
         android:layout_margin="10dp"
-        android:hint="Contents"/>
+        android:hint="@string/hint_contents"
+        android:importantForAutofill="no" />
 
     <Button
         android:id="@+id/add_memo_saveBtn"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_margin="10dp"
-        android:text="Save"
+        android:text="@string/save_button"
         android:layout_gravity="center_horizontal"/>
 
 </LinearLayout>

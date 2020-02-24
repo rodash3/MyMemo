@@ -2,12 +2,10 @@ package com.example.mymemo;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.FileProvider;
-import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -16,21 +14,15 @@ import android.content.ContentUris;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
-import android.preference.PreferenceManager;
 import android.provider.DocumentsContract;
 import android.provider.MediaStore;
-import android.util.Base64;
 import android.util.Log;
 import android.view.View;
 import android.webkit.URLUtil;
@@ -39,18 +31,11 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.Toast;
 
-import org.json.JSONArray;
-
-import java.io.BufferedInputStream;
 import java.io.BufferedWriter;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
-import java.net.URL;
-import java.net.URLConnection;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -63,11 +48,11 @@ public class AddMemoActivity extends AppCompatActivity {
     private List<String> img_item = new ArrayList<>();
     private AddMemoImageAdapter imgAdapter = new AddMemoImageAdapter(AddMemoActivity.this, img_item);
     private String CTAG = "Camera Permission-";
-    private String currentImagePath;
+    private String currentImagePath; // 카메라 촬영시 저장되는 경로
     static int CAMERA_IMAGE = 100;
     static int GALLERY_IMAGE = 200;
-    static boolean isEdit;
-    private AlertDialog alert;
+    static boolean isEdit; // 편집으로 액티비티 들어온건지 아닌지
+    private AlertDialog alert; // 사진선택 다이얼로그
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -91,6 +76,7 @@ public class AddMemoActivity extends AppCompatActivity {
         // 기존 메모를 수정하러 온 목적
         if(getIntent().getStringExtra("fileName") != null){
             isEdit = true;
+            // 인텐트에서 넘어온 값으로 세팅
             if(getIntent().getStringArrayListExtra("images")!=null){
                 img_item.addAll(getIntent().getStringArrayListExtra("images"));
             }
@@ -107,6 +93,7 @@ public class AddMemoActivity extends AppCompatActivity {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                     if (checkSelfPermission(Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED &&
                             checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
+                        // 권한 허용되었을 때 사진 선택 다이얼로그 실행
                         photoDialogRadio();
                         Log.d(CTAG, "권한 설정 완료");
                     } else {
@@ -124,10 +111,10 @@ public class AddMemoActivity extends AppCompatActivity {
             public void onClick(View v) {
                 String title = eTitle.getText().toString() + "\n";
                 String contents = eContents.getText().toString();
-                String fileName = null;
-                if(isEdit){
+                String fileName;
+                if(isEdit){ // 편집이면 파일명 동일, 새로 파일 만들지 않음
                     fileName = getIntent().getStringExtra("fileName");
-                }else {
+                }else { // 저장시 시간을 기록하여 파일명으로 지정
                     SimpleDateFormat nameFormat = new SimpleDateFormat("yyyyMMddHHmmss", Locale.KOREAN);
                     fileName = nameFormat.format(new Date()) + ".txt";
                 }
@@ -137,6 +124,7 @@ public class AddMemoActivity extends AppCompatActivity {
                     fos = openFileOutput(fileName, Context.MODE_PRIVATE);
                     BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(fos));
                     for (int i = 0; i < img_item.size(); i++) {
+                        // 이미지 업로드한 경우 image 태그를 붙여 텍스트와 구별
                         bw.write("image#\n");
                         bw.write(img_item.get(i));
                         bw.write("\n");
@@ -148,6 +136,7 @@ public class AddMemoActivity extends AppCompatActivity {
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
+                // 저장이 끝나면 다시 메인화면으로 이동
                 Intent intent = new Intent(AddMemoActivity.this, MainActivity.class);
                 if(!isEdit)
                     intent.putExtra("fileName", fileName);
@@ -173,7 +162,6 @@ public class AddMemoActivity extends AppCompatActivity {
     private void photoDialogRadio() {
         final CharSequence[] PhotoModels = {"카메라로 촬영하기", "갤러리에서 가져오기", "이미지 URL 입력하기"};
         AlertDialog.Builder alt_bld = new AlertDialog.Builder(this);
-        //alt_bld.setIcon(R.drawable.icon);
         alt_bld.setTitle("사진 추가");
         alt_bld.setSingleChoiceItems(PhotoModels, -1, new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int item) {
@@ -182,11 +170,13 @@ public class AddMemoActivity extends AppCompatActivity {
                     if (cameraIntent.resolveActivity(getPackageManager()) != null) {
                         File imageFile = null;
                         try {
+                            // 이미지 저장 경로 및 임시 파일 생성
                             imageFile = createImageFile();
                         } catch (IOException ex) {
                             ex.printStackTrace();
                         }
                         if (imageFile != null) {
+                            // 정상적으로 생성되면 카메라 인텐트 넘기며 onActivityResult 실행
                             Uri photoURI = FileProvider.getUriForFile(AddMemoActivity.this,
                                     "com.example.mymemo.provider", imageFile);
                             cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
@@ -199,6 +189,7 @@ public class AddMemoActivity extends AppCompatActivity {
                     intent.setAction(Intent.ACTION_GET_CONTENT);
                     startActivityForResult(intent, GALLERY_IMAGE);
                 } else if (item == 2) { // 외부 URL
+                    // URL 을 입력할 editText가 포함된 다이얼로그 생성
                     final EditText et = new EditText(AddMemoActivity.this);
                     AlertDialog.Builder alt_bld = new AlertDialog.Builder(AddMemoActivity.this);
                     alt_bld.setTitle("URL 입력")
@@ -215,6 +206,7 @@ public class AddMemoActivity extends AppCompatActivity {
                                                 "URL이 올바르지 않습니다.", Toast.LENGTH_SHORT).show();
                                     }
                                     alert.dismiss();
+                                    // 추가한 이미지로 포커싱
                                     add_img_recyclerView.scrollToPosition(imgAdapter.getItemCount()-1);
                                 }
                             });
@@ -234,9 +226,8 @@ public class AddMemoActivity extends AppCompatActivity {
             if (requestCode == CAMERA_IMAGE) {  // 카메라에서 찍은 이미지
                 try {
                     File file = new File(currentImagePath);
-                    Log.d("사진파일 경로", currentImagePath);
                     Bitmap bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), Uri.fromFile(file));
-                    if (bitmap != null) {
+                    if (bitmap != null) { // 경로에 이미지가 존재할 때 경로 저장
                         img_item.add(currentImagePath);
                         imgAdapter.notifyDataSetChanged();
                     }
@@ -245,7 +236,7 @@ public class AddMemoActivity extends AppCompatActivity {
                 }
             } else if (requestCode == GALLERY_IMAGE && data != null) { // 갤러리에서 가져온 이미지
                 try {
-                    Log.d("갤러리파일 경로", getPath(AddMemoActivity.this, data.getData()));
+                    // 앨범 사진이 위치한 경로 저장
                     img_item.add(getPath(AddMemoActivity.this, data.getData()));
                     imgAdapter.notifyDataSetChanged();
                 } catch (Exception e) {
@@ -253,11 +244,13 @@ public class AddMemoActivity extends AppCompatActivity {
                 }
             }
         }
+        // 추가한 이미지로 포커싱
         add_img_recyclerView.scrollToPosition(imgAdapter.getItemCount()-1);
         alert.dismiss();
     }
 
     public File createImageFile() throws IOException {
+        // 현재 시간으로 임시 사진 파일 생성
         String imageFileName = System.currentTimeMillis() + "";
         File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
         File image = File.createTempFile(imageFileName, ".jpg", storageDir);
@@ -273,8 +266,10 @@ public class AddMemoActivity extends AppCompatActivity {
             for (String path : img_item) {
                 if (path.contains("com.example.mymemo")) {
                     File file = new File(path);
-                    if (file.exists())
+                    // 파일이 존재하는 경우 삭제
+                    if (file.exists()) {
                         file.delete();
+                    }
                 }
             }
         }

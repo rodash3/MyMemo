@@ -3,19 +3,19 @@ package com.example.mymemo;
 import java.util.ArrayList;
 
 public class MemoListInfo {
-    private String title;
-    private String contents;
-    private String previewImg;
-    private ArrayList<String> imgs;
-    private String fileName;
+    private String title; // 메모 제목
+    private String contents; // 메모 내용
+    private String previewImg; // 썸네일 이미지 경로
+    private ArrayList<String> imgs; // 메모에 삽입된 전체 이미지 경로
+    private String fileName; // 메모 텍스트 파일 이름
 
-    public MemoListInfo(String title, String contents, String fileName) {
+    MemoListInfo(String title, String contents, String fileName) {
         this.title = title;
         this.contents = contents;
         this.fileName = fileName;
     }
 
-    public MemoListInfo(String title, String contents, String previewImg, ArrayList<String> imgs, String fileName) {
+    MemoListInfo(String title, String contents, String previewImg, ArrayList<String> imgs, String fileName) {
         this.title = title;
         this.contents = contents;
         this.previewImg = previewImg;
@@ -23,43 +23,43 @@ public class MemoListInfo {
         this.fileName = fileName;
     }
 
-    public String getTitle() {
+    String getTitle() {
         return title;
     }
 
-    public void setTitle(String title) {
+    void setTitle(String title) {
         this.title = title;
     }
 
-    public String getContents() {
+    String getContents() {
         return contents;
     }
 
-    public void setContents(String contents) {
+    void setContents(String contents) {
         this.contents = contents;
     }
 
-    public String getPreviewImg() {
+    String getPreviewImg() {
         return previewImg;
     }
 
-    public void setPreviewImg(String previewImg) {
+    void setPreviewImg(String previewImg) {
         this.previewImg = previewImg;
     }
 
-    public ArrayList<String> getImgs() {
+    ArrayList<String> getImgs() {
         return imgs;
     }
 
-    public void setImgs(ArrayList<String> imgs) {
+    void setImgs(ArrayList<String> imgs) {
         this.imgs = imgs;
     }
 
-    public String getFileName() {
+    String getFileName() {
         return fileName;
     }
 
-    public void setFileName(String fileName) {
+    void setFileName(String fileName) {
         this.fileName = fileName;
     }
 }

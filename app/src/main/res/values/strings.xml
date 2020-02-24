@@ -1,3 +1,16 @@
 <resources>
     <string name="app_name">MyMemo</string>
+    <string name="hint_title">Title</string>
+    <string name="hint_contents">Contents</string>
+    <string name="save_button">SAVE</string>
+    <string name="view_memo_title">상세보기</string>
+    <string name="add_memo_imageView">This is an imageView part of recyclerView
+        when users add images in memo, for showing what they add</string>
+    <string name="add_memo_imageButton">This is an imageButton, touch this to add images in memo,
+        resulting in adding image to recyclerView</string>
+    <string name="main_memo_imageView">This is an thumbnail imageView of main screen</string>
+    <string name="main_memo_delete">This is an delete imageButton of main screen,
+        when touch this button users can delete the memo</string>
+    <string name="view_memo_imageView">This is an imageView part of recyclerView
+        when users view detail images in memo</string>
 </resources>

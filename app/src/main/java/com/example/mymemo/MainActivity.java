@@ -10,7 +10,6 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.View;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -20,7 +19,6 @@ import org.json.JSONException;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
@@ -46,6 +44,7 @@ public class MainActivity extends AppCompatActivity {
         main_recyclerView.setLayoutManager(layoutManager);
         main_recyclerView.setAdapter(mainAdapter);
 
+        // 새 메모 추가 버튼
         FloatingActionButton addBtn = findViewById(R.id.main_add_floatingButton);
 
         // 메모 추가 버튼을 누르면 메모 작성 액티비티로 이동
@@ -67,9 +66,9 @@ public class MainActivity extends AppCompatActivity {
         }
 
         memo_item.clear();
-        String title;
-        String contents;
-        boolean hasImage;
+        String title; // 메모 제목
+        String contents; // 메모 내용
+        boolean hasImage; // 메모에 이미지가 포함되어 있는지
         FileInputStream fis;
 
         // 파일 읽어들이기
@@ -84,7 +83,7 @@ public class MainActivity extends AppCompatActivity {
 
                 while (true){
                     title = br.readLine();
-                    if(title.equals("image#")){ // 이미지 path or url
+                    if(title.equals("image#")){ // 다음줄이 이미지 path or url
                         hasImage = true;
                         imgs.add(br.readLine());
                     }else {
@@ -121,14 +120,14 @@ public class MainActivity extends AppCompatActivity {
         } else {
             editor.putString(key, null);
         }
-        editor.commit();
+        editor.apply();
     }
 
     // SharedPreference 에서 json 으로 저장된 값을 ArrayList 로 얻어오기
     public static ArrayList<String> getStringArrayPref(Context context, String key) {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
         String json = prefs.getString(key, null);
-        ArrayList<String> fileNames = new ArrayList<String>();
+        ArrayList<String> fileNames = new ArrayList<>();
         if (json != null) {
             try {
                 JSONArray a = new JSONArray(json);

@@ -19,7 +19,7 @@
             android:id="@+id/view_memo_toolbar_title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="상세보기"
+            android:text="@string/view_memo_title"
             android:textColor="#222222"
             android:textSize="16sp"/>
     </androidx.appcompat.widget.Toolbar>

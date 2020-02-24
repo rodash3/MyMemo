@@ -13,6 +13,7 @@
         android:paddingStart="15dp"
         android:paddingEnd="15dp"
         android:layout_width="350dp"
-        android:layout_height="200dp"/>
+        android:layout_height="200dp"
+        android:contentDescription="@string/view_memo_imageView" />
 
 </LinearLayout>
